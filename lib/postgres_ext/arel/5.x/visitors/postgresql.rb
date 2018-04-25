@@ -1,19 +1,22 @@
-require 'arel/visitors/postgresql'
+# frozen_string_literal: true
+
+require "arel/visitors/postgresql"
 
 module Arel
   module Visitors
     class PostgreSQL
       private
 
-      def visit_Arel_Nodes_ContainedWithin o, collector
+      # rubocop:disable Naming/MethodName, Naming/UncommunicativeMethodParamName
+      def visit_Arel_Nodes_ContainedWithin(o, collector)
         infix_value o, collector, " << "
       end
 
-      def visit_Arel_Nodes_ContainedWithinEquals o, collector
+      def visit_Arel_Nodes_ContainedWithinEquals(o, collector)
         infix_value o, collector, " <<= "
       end
 
-      def visit_Arel_Nodes_Contains o, collector
+      def visit_Arel_Nodes_Contains(o, collector)
         left_column = o.left.relation.name.classify.constantize.columns.find do |col|
           col.name == o.left.name.to_s || col.name == o.left.relation.name.to_s
         end
@@ -25,37 +28,39 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_ContainsINet o, collector
+      def visit_Arel_Nodes_ContainsINet(o, collector)
         infix_value o, collector, " >> "
       end
 
-      def visit_Arel_Nodes_ContainsHStore o, collector
+      def visit_Arel_Nodes_ContainsHStore(o, collector)
         infix_value o, collector, " @> "
       end
 
-      def visit_Arel_Nodes_ContainedInHStore o, collector
+      def visit_Arel_Nodes_ContainedInHStore(o, collector)
         infix_value o, collector, " <@ "
       end
 
-      def visit_Arel_Nodes_ContainsArray o, collector
+      def visit_Arel_Nodes_ContainsArray(o, collector)
         infix_value o, collector, " @> "
       end
 
-      def visit_Arel_Nodes_ContainedInArray o, collector
+      def visit_Arel_Nodes_ContainedInArray(o, collector)
         infix_value o, collector, " <@ "
       end
 
-      def visit_Arel_Nodes_ContainsEquals o, collector
+      def visit_Arel_Nodes_ContainsEquals(o, collector)
         infix_value o, collector, " >>= "
       end
 
-      def visit_Arel_Nodes_Overlap o, collector
+      def visit_Arel_Nodes_Overlap(o, collector)
         infix_value o, collector, " && "
       end
 
-      def visit_IPAddr value, collector
-        collector << quote("#{value.to_s}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}")
+      def visit_IPAddr(value, collector)
+        collector << quote("#{value}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}")
       end
+
+      # rubocop:enable Naming/MethodName, Naming/UncommunicativeMethodParamName
     end
   end
 end

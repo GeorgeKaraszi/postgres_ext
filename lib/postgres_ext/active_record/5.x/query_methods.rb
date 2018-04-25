@@ -1,4 +1,6 @@
-require 'postgres_ext/active_record/relation/query_methods'
+# frozen_string_literal: true
+
+require "postgres_ext/active_record/relation/query_methods"
 
 module ActiveRecord
   module QueryMethods

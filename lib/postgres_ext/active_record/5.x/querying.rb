@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::Querying
   delegate :with, :ranked, to: :all
 
@@ -5,7 +7,7 @@ module ActiveRecord::Querying
     table = Arel::Table.new(name)
 
     cte_proxy = CTEProxy.new(name, self)
-    relation = ActiveRecord::Relation.new cte_proxy, cte_proxy.arel_table
+    relation = ActiveRecord::Relation.new cte_proxy, cte_proxy.arel_table, expression.predicate_builder
     relation.with name => expression
   end
 end

@@ -1,5 +1,6 @@
-module ActiveRecord
+# frozen_string_literal: true
 
+module ActiveRecord
   module BuildArelWithExtension
     def build_arel
       arel = super
@@ -12,22 +13,20 @@ module ActiveRecord
     end
   end
 
-
   module QueryMethods
-
     prepend BuildArelWithExtension
 
     class WhereChain
       def overlap(opts, *rest)
-        substitute_comparisons(opts, rest, Arel::Nodes::Overlap, 'overlap')
+        substitute_comparisons(opts, rest, Arel::Nodes::Overlap, "overlap")
       end
 
       def contained_within(opts, *rest)
-        substitute_comparisons(opts, rest, Arel::Nodes::ContainedWithin, 'contained_within')
+        substitute_comparisons(opts, rest, Arel::Nodes::ContainedWithin, "contained_within")
       end
 
       def contained_within_or_equals(opts, *rest)
-        substitute_comparisons(opts, rest, Arel::Nodes::ContainedWithinEquals, 'contained_within_or_equals')
+        substitute_comparisons(opts, rest, Arel::Nodes::ContainedWithinEquals, "contained_within_or_equals")
       end
 
       def contains(opts, *rest)
@@ -71,15 +70,15 @@ module ActiveRecord
       end
 
       def contains_or_equals(opts, *rest)
-        substitute_comparisons(opts, rest, Arel::Nodes::ContainsEquals, 'contains_or_equals')
+        substitute_comparisons(opts, rest, Arel::Nodes::ContainsEquals, "contains_or_equals")
       end
 
       def any(opts, *rest)
-        equality_to_function('ANY', opts, rest)
+        equality_to_function("ANY", opts, rest)
       end
 
       def all(opts, *rest)
-        equality_to_function('ALL', opts, rest)
+        equality_to_function("ALL", opts, rest)
       end
 
       private
@@ -89,7 +88,7 @@ module ActiveRecord
       end
 
       def column_from_association(rel)
-        if assoc = assoc_from_related_table(rel)
+        if (assoc = assoc_from_related_table(rel))
           column = assoc.klass.columns.find { |col| find_column(col, rel) }
         end
       end
@@ -98,11 +97,11 @@ module ActiveRecord
         new_right_name = rel.left.name.to_s
         if rel.right.respond_to?(:val)
           return if rel.right.val.is_a?(Hash)
-          rel.right = Arel::Nodes.build_quoted({new_right_name => rel.right.val},
+          rel.right = Arel::Nodes.build_quoted({ new_right_name => rel.right.val },
                                                rel.left)
         else
           return if rel.right.is_a?(Hash)
-          rel.right = {new_right_name => rel.right }
+          rel.right = { new_right_name => rel.right }
         end
 
         rel.left.name = rel.left.relation.name.to_sym
@@ -212,14 +211,14 @@ module ActiveRecord
         when String
           with_value
         when Hash
-          with_value.map  do |name, expression|
+          with_value.map do |name, expression|
             case expression
             when String
               select = Arel::Nodes::SqlLiteral.new "(#{expression})"
             when ActiveRecord::Relation, Arel::SelectManager
               select = Arel::Nodes::SqlLiteral.new "(#{expression.to_sql})"
             end
-            Arel::Nodes::As.new Arel::Nodes::SqlLiteral.new("\"#{name.to_s}\""), select
+            Arel::Nodes::As.new Arel::Nodes::SqlLiteral.new("\"#{name}\""), select
           end
         when Arel::Nodes::As
           with_value
@@ -247,13 +246,13 @@ module ActiveRecord
                         Arel::Nodes::SqlLiteral.new "(#{rank_window_options})"
                       end
 
-        unless rank_window.blank?
-          rank_node = Arel::Nodes::SqlLiteral.new 'rank()'
+        if rank_window.present?
+          rank_node = Arel::Nodes::SqlLiteral.new "rank()"
           window = Arel::Nodes::Window.new
-          if String === rank_window
-            window = window.frame rank_window
+          window = if String === rank_window
+            window.frame rank_window
           else
-            window = window.order(rank_window)
+            window.order(rank_window)
           end
           over_node = Arel::Nodes::Over.new rank_node, window
 
@@ -261,7 +260,5 @@ module ActiveRecord
         end
       end
     end
-
   end
 end
-

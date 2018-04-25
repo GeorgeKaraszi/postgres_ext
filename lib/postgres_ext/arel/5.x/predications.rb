@@ -1,4 +1,6 @@
-require 'arel/predications'
+# frozen_string_literal: true
+
+require "arel/predications"
 
 module Arel
   module Predications
@@ -27,12 +29,12 @@ module Arel
     end
 
     def any(other)
-      any_tags_function = Arel::Nodes::NamedFunction.new('ANY', [self])
+      any_tags_function = Arel::Nodes::NamedFunction.new("ANY", [self])
       Arel::Nodes::Equality.new(Nodes.build_quoted(other, self), any_tags_function)
     end
 
     def all(other)
-      any_tags_function = Arel::Nodes::NamedFunction.new('ALL', [self])
+      any_tags_function = Arel::Nodes::NamedFunction.new("ALL", [self])
       Arel::Nodes::Equality.new(Nodes.build_quoted(other, self), any_tags_function)
     end
   end

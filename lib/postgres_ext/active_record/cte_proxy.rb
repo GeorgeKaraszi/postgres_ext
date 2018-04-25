@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CTEProxy
   include ActiveRecord::Querying
   include ActiveRecord::Sanitization::ClassMethods
@@ -14,17 +16,15 @@ class CTEProxy
     @_reflections = {}
   end
 
-  def name
-    @name
-  end
+  attr_reader :name
 
   def table_name
     name
   end
 
   delegate :column_names, :columns_hash, :model_name, :primary_key, :attribute_alias?,
-    :aggregate_reflections, :instantiate, :type_for_attribute, :relation_delegate_class,
-    :arel_attribute, to: :@model
+           :aggregate_reflections, :instantiate, :type_for_attribute, :relation_delegate_class,
+           :arel_attribute, to: :@model
 
   private
 

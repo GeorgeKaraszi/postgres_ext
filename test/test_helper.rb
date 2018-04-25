@@ -1,29 +1,35 @@
-require 'active_record'
-require 'minitest/autorun'
-require 'bourne'
-require 'database_cleaner'
-unless ENV['CI'] || RUBY_PLATFORM =~ /java/
-  require 'byebug'
+# frozen_string_literal: true
+
+require "active_record"
+require "minitest/autorun"
+require "bourne"
+require "database_cleaner"
+unless ENV["CI"] || RUBY_PLATFORM =~ /java/
+  require "byebug"
 end
 
-require 'dotenv'
+require "dotenv"
 Dotenv.load
 
-require 'postgres_ext'
+require "postgres_ext"
 
-ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'])
+ActiveRecord::Base.establish_connection(ENV["DATABASE_URL"])
 
-class Person < ActiveRecord::Base
-  has_many :hm_tags, class_name: 'Tag'
-  has_and_belongs_to_many :habtm_tags, class_name: 'Tag'
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+end
+
+class Person < ApplicationRecord
+  has_many :hm_tags, class_name: "Tag"
+  has_and_belongs_to_many :habtm_tags, class_name: "Tag"
 
   def self.wicked_people
     includes(:habtm_tags)
-      .where(:tags => {:categories => ['wicked','awesome']})
+      .where(tags: { categories: %w[wicked awesome] })
   end
 end
 
-class Tag < ActiveRecord::Base
+class Tag < ApplicationRecord
   belongs_to :person
 end
 
@@ -38,7 +44,7 @@ DatabaseCleaner.strategy = :deletion
 
 class MiniTest::Spec
   class << self
-    alias :context :describe
+    alias context describe
   end
 
   before do

@@ -2,25 +2,17 @@ sudo: false
 language: ruby
 cache: bundler
 rvm:
-- 2.0.0
-- 2.1.2
-- 2.2.2
-- 2.3.0
 - 2.3.1
+- 2.4.4
+- 2.5.1
 - ruby-head
 
 gemfile:
-  - gemfiles/Gemfile.activerecord-4.0.x
-  - gemfiles/Gemfile.activerecord-4.1.x
-  - gemfiles/Gemfile.activerecord-4.2.x
   - gemfiles/Gemfile.activerecord-5.0.x
+  - gemfiles/Gemfile.activerecord-5.1.x
+  - gemfiles/Gemfile.activerecord-5.2.x
 
 matrix:
-  exclude:
-    - rvm: 2.0.0
-      gemfile: gemfiles/Gemfile.activerecord-5.0.x
-    - rvm: 2.1.2
-      gemfile: gemfiles/Gemfile.activerecord-5.0.x
   allow_failures:
     - rvm: ruby-head
 
@@ -30,8 +22,5 @@ before_script:
 - psql -c 'create database postgres_ext_test;' -U postgres -h localhost
 - bundle exec rake db:migrate
 
-notifications:
-  email:
-  - git@danmcclain.net
 addons:
-  postgresql: '9.3'
+  postgresql: '9.6'
