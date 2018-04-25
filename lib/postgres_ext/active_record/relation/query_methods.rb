@@ -3,13 +3,10 @@
 module ActiveRecord
   module BuildArelWithExtension
     def build_arel
-      arel = super
-
-      build_with(arel)
-
-      build_rank(arel, rank_value) if rank_value
-
-      arel
+      super.tap do |arel|
+        build_with(arel)
+        build_rank(arel, rank_value) if rank_value
+      end
     end
   end
 
@@ -38,7 +35,7 @@ module ActiveRecord
 
             if column.type == :hstore
               Arel::Nodes::ContainsHStore.new(rel.left, rel.right)
-            elsif column.respond_to?(:array) && column.array
+            elsif column.try(:array)
               Arel::Nodes::ContainsArray.new(rel.left, rel.right)
             else
               Arel::Nodes::ContainsINet.new(rel.left, rel.right)
@@ -58,7 +55,7 @@ module ActiveRecord
 
             if column.type == :hstore
               Arel::Nodes::ContainedInHStore.new(rel.left, rel.right)
-            elsif column.respond_to?(:array) && column.array
+            elsif column.try(:array)
               Arel::Nodes::ContainedInArray.new(rel.left, rel.right)
             else
               Arel::Nodes::ContainsINet.new(rel.left, rel.right)
@@ -89,7 +86,7 @@ module ActiveRecord
 
       def column_from_association(rel)
         if (assoc = assoc_from_related_table(rel))
-          column = assoc.klass.columns.find { |col| find_column(col, rel) }
+          assoc.klass.columns.find { |col| find_column(col, rel) }
         end
       end
 
@@ -212,13 +209,9 @@ module ActiveRecord
           with_value
         when Hash
           with_value.map do |name, expression|
-            case expression
-            when String
-              select = Arel::Nodes::SqlLiteral.new "(#{expression})"
-            when ActiveRecord::Relation, Arel::SelectManager
-              select = Arel::Nodes::SqlLiteral.new "(#{expression.to_sql})"
-            end
-            Arel::Nodes::As.new Arel::Nodes::SqlLiteral.new("\"#{name}\""), select
+            select      = build_sql_expression_literal(expression)
+            column_name = Arel::Nodes::SqlLiteral.new("\"#{name}\"")
+            Arel::Nodes::As.new column_name, select
           end
         when Arel::Nodes::As
           with_value
@@ -233,8 +226,17 @@ module ActiveRecord
       end
     end
 
+    def build_sql_expression_literal(expression)
+      case expression
+      when String
+        Arel::Nodes::SqlLiteral.new "(#{expression})"
+      when ActiveRecord::Relation, Arel::SelectManager
+        Arel::Nodes::SqlLiteral.new "(#{expression.to_sql})"
+      end
+    end
+
     def build_rank(arel, rank_window_options)
-      unless arel.projections.count == 1 && Arel::Nodes::Count === arel.projections.first
+      unless arel.projections.count == 1 && arel.projections.first.is_a?(Arel::Nodes::Count)
         rank_window = case rank_window_options
                       when :order
                         arel.orders
@@ -247,14 +249,10 @@ module ActiveRecord
                       end
 
         if rank_window.present?
-          rank_node = Arel::Nodes::SqlLiteral.new "rank()"
-          window = Arel::Nodes::Window.new
-          window = if String === rank_window
-            window.frame rank_window
-          else
-            window.order(rank_window)
-          end
-          over_node = Arel::Nodes::Over.new rank_node, window
+          rank_node    = Arel::Nodes::SqlLiteral.new "rank()"
+          window       = Arel::Nodes::Window.new
+          window       = rank_window.is_a?(String) ? window.frame(rank_window) : window.order(rank_window)
+          over_node    = Arel::Nodes::Over.new rank_node, window
 
           arel.project(over_node)
         end

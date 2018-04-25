@@ -8,6 +8,7 @@ module Arel
       private
 
       # rubocop:disable Naming/MethodName, Naming/UncommunicativeMethodParamName
+
       def visit_Arel_Nodes_ContainedWithin(o, collector)
         infix_value o, collector, " << "
       end

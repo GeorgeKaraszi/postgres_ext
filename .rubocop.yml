@@ -26,7 +26,7 @@ EndAlignment:
 LineLength:
   Max: 120
   Exclude:
-    - examples/**/*
+    - test/**/*
 
 BracesAroundHashParameters:
   EnforcedStyle: context_dependent
